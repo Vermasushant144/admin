@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Add New Card</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+
+        .form-title, .list-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+
+        .card-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-input {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        .submit-button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .cards-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .card-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        .card-title, .card-subtitle {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .apply-now-button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .edit-button, .delete-button {
+            margin-top: 10px;
+            padding: 6px 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .edit-button {
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="form-title">Add New Card</h2>
+        <form id="addCardForm" class="card-form">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" class="form-input" required><br>
+            
+            <label for="subtitle">Subtitle:</label>
+            <input type="text" id="subtitle" name="subtitle" class="form-input" required><br>
+            
+            <label for="bgColor">Background Color:</label>
+            <input type="color" id="bgColor" name="bgColor" class="form-input" required><br>
+            
+            <label for="svgIcon">SVG Icon Path:</label>
+            <input type="text" id="svgIcon" name="svgIcon" class="form-input" required><br>
+
+            <label for="applyLink">Apply Now Link:</label>
+            <input type="url" id="applyLink" name="applyLink" class="form-input" required><br>
+            
+            <button type="submit" class="submit-button">Add Card</button>
+        </form>
+
+        <h2 class="list-title">Added Cards</h2>
+        <div id="cardsList" class="cards-list">
+            <!-- Added cards will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Function to display cards
+        function displayCards() {
+            const cardsList = document.getElementById('cardsList');
+            cardsList.innerHTML = ''; // Clear existing cards
+
+            let cards = JSON.parse(localStorage.getItem('cards')) || [];
+
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card-item');
+                cardElement.innerHTML = `
+                    <div class="card-content" style="background-color: ${card.bgColor}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" class="card-icon">
+                            <path d="${card.svgIcon}"/>
+                        </svg>
+                        <div class="card-title">${card.title}</div>
+                        <div class="card-subtitle">${card.subtitle}</div>
+                        <a href="${card.applyLink}" class="apply-now-button" target="_blank">Apply Now</a>
+                        <button class="edit-button" data-index="${index}">Edit</button>
+                        <button class="delete-button" data-index="${index}">Delete</button>
+                    </div>
+                `;
+                cardsList.appendChild(cardElement);
+            });
+
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.edit-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    editCard(index);
+                });
+            });
+
+            document.querySelectorAll('.delete-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    deleteCard(index);
+                });
+            });
+        }
+
+        // Function to edit a card
+        function editCard(index) {
+            let cards = JSON.parse(localStorage.getItem('cards')) || [];
+            const card = cards[index];
+
+            document.getElementById('title').value = card.title;
+            document.getElementById('subtitle').value = card.subtitle;
+            document.getElementById('bgColor').value = card.bgColor;
+            document.getElementById('svgIcon').value = card.svgIcon;
+            document.getElementById('applyLink').value = card.applyLink;
+
+            // Remove the card to be edited from localStorage
+            cards.splice(index, 1);
+            localStorage.setItem('cards', JSON.stringify(cards));
+
+            // Refresh the card list
+            displayCards();
+        }
+
+        // Function to delete a card
+        function deleteCard(index) {
+            let cards = JSON.parse(localStorage.getItem('cards')) || [];
+            cards.splice(index, 1);
+            localStorage.setItem('cards', JSON.stringify(cards));
+
+            // Refresh the card list
+            displayCards();
+        }
+
+        document.getElementById('addCardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const subtitle = document.getElementById('subtitle').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const svgIcon = document.getElementById('svgIcon').value;
+            const applyLink = document.getElementById('applyLink').value;
+            
+            const card = {
+                title,
+                subtitle,
+                bgColor,
+                svgIcon,
+                applyLink
+            };
+
+
+
+            let cards = JSON.parse(localStorage.getItem('cards')) || [];
+            cards.push(card);
+            localStorage.setItem('cards', JSON.stringify(cards));
+
+            alert('Card added successfully!');
+            document.getElementById('addCardForm').reset();
+            displayCards();
+        });
+
+        // Display cards on page load
+        document.addEventListener('DOMContentLoaded', displayCards);
+    </script>
+</body>
+</html>
